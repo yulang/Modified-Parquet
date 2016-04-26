@@ -70,6 +70,7 @@ final class ColumnWriterV2 implements ColumnWriter {
     this.repetitionLevelColumn = props.newRepetitionLevelEncoder(path);
     this.definitionLevelColumn = props.newDefinitionLevelEncoder(path);
     this.dataColumn = props.newValuesWriter(path);
+    //System.out.println("Version 2");
   }
 
   private void log(Object value, int r, int d) {

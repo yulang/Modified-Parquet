@@ -71,6 +71,7 @@ final class ColumnWriterV1 implements ColumnWriter {
     this.repetitionLevelColumn = props.newRepetitionLevelWriter(path);
     this.definitionLevelColumn = props.newDefinitionLevelWriter(path);
     this.dataColumn = props.newValuesWriter(path);
+    System.out.println("Version 1");
   }
 
   private void log(Object value, int r, int d) {
