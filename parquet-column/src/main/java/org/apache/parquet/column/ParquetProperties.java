@@ -60,8 +60,8 @@ public class ParquetProperties {
   public static final int DEFAULT_PAGE_SIZE = 1024 * 1024;
   public static final int DEFAULT_DICTIONARY_PAGE_SIZE = DEFAULT_PAGE_SIZE;
   public static final boolean DEFAULT_IS_DICTIONARY_ENABLED = true;
-  //public static final WriterVersion DEFAULT_WRITER_VERSION = WriterVersion.PARQUET_1_0;
-  public static final WriterVersion DEFAULT_WRITER_VERSION = WriterVersion.PARQUET_2_0;
+  public static final WriterVersion DEFAULT_WRITER_VERSION = WriterVersion.PARQUET_1_0;
+  //public static final WriterVersion DEFAULT_WRITER_VERSION = WriterVersion.PARQUET_2_0;
   public static final boolean DEFAULT_ESTIMATE_ROW_COUNT_FOR_PAGE_SIZE_CHECK = true;
   public static final int DEFAULT_MINIMUM_RECORD_COUNT_FOR_CHECK = 100;
   public static final int DEFAULT_MAXIMUM_RECORD_COUNT_FOR_CHECK = 10000;
@@ -205,17 +205,17 @@ public class ParquetProperties {
     switch(writerVersion) {
     case PARQUET_1_0:
       // by Lang Yu, Github: @yulang
-      System.out.println("Parquet 1.0");
+      //System.out.println("Parquet 1.0");
       switch (path.getType()) {
-        case INT32:
-          System.out.println("Use new writer");
-          return new DeltaBinaryPackingValuesWriter(initialSlabSize, pageSizeThreshold, allocator);
+        //case INT32:
+          //System.out.println("Use new writer");
+          //return new DeltaBinaryPackingValuesWriter(initialSlabSize, pageSizeThreshold, allocator);
         default:
           return plainWriter(path);
       }
       //return plainWriter(path);
     case PARQUET_2_0:
-      System.out.println("Parquet 2.0");
+      //System.out.println("Parquet 2.0");
       switch (path.getType()) {
       case BOOLEAN:
         return new RunLengthBitPackingHybridValuesWriter(1, initialSlabSize, pageSizeThreshold, allocator);

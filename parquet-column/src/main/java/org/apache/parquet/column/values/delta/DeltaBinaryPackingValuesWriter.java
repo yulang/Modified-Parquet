@@ -140,6 +140,8 @@ public class DeltaBinaryPackingValuesWriter extends ValuesWriter {
     }
 
     int delta = v - previousValue;//calculate delta
+    //if (delta > 0)
+    //  System.out.println(delta);
     previousValue = v;
 
     deltaBlockBuffer[deltaValuesToFlush++] = delta;
