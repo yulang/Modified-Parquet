@@ -19,8 +19,11 @@
 package org.apache.parquet.column.statistics;
 
 import org.apache.parquet.column.UnknownColumnTypeException;
+import org.apache.parquet.column.ParquetProperties.WriterVersion;
 import org.apache.parquet.io.api.Binary;
 import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName;
+import org.easymock.internal.matchers.Null;
+
 import java.util.Arrays;
 
 
@@ -34,6 +37,30 @@ public abstract class Statistics<T extends Comparable<T>> {
   private boolean hasNonNullValue;
   private long num_nulls;
 
+  // Modify by Lang Yu, 3:41 PM, Jun 6, 2016
+  private static final StatisticVersion statVersion = StatisticVersion.MODIFID_STAT;
+  
+  public enum StatisticVersion {
+	    ORIGINAL_STAT ("v1"),
+	    MODIFID_STAT ("v2");
+
+	    private final String shortName;
+
+	    StatisticVersion(String shortname) {
+	      this.shortName = shortname;
+	    }
+
+	    public static StatisticVersion fromString(String name) {
+	      for (StatisticVersion v : StatisticVersion.values()) {
+	        if (v.shortName.equals(name)) {
+	          return v;
+	        }
+	      }
+	      // Throws IllegalArgumentException if name does not exact match with enum name
+	      return StatisticVersion.valueOf(name);
+	    }
+  }
+  
   public Statistics() {
     hasNonNullValue = false;
     num_nulls = 0;
@@ -45,26 +72,49 @@ public abstract class Statistics<T extends Comparable<T>> {
    * @return instance of a typed statistics class
    */
   public static Statistics getStatsBasedOnType(PrimitiveTypeName type) {
-    switch(type) {
-    case INT32:
-      return new IntStatistics();
-    case INT64:
-      return new LongStatistics();
-    case FLOAT:
-      return new FloatStatistics();
-    case DOUBLE:
-      return new DoubleStatistics();
-    case BOOLEAN:
-      return new BooleanStatistics();
-    case BINARY:
-      return new BinaryStatistics();
-    case INT96:
-      return new BinaryStatistics();
-    case FIXED_LEN_BYTE_ARRAY:
-      return new BinaryStatistics();
-    default:
-      throw new UnknownColumnTypeException(type);
-    }
+	  if(statVersion == StatisticVersion.ORIGINAL_STAT) {
+		  switch(type) {
+		  case INT32:
+			  return new IntStatistics();
+		  case INT64:
+			  return new LongStatistics();
+		  case FLOAT:
+			  return new FloatStatistics();
+		  case DOUBLE:
+			  return new DoubleStatistics();
+		  case BOOLEAN:
+			  return new BooleanStatistics();
+		  case BINARY:
+			  return new BinaryStatistics();
+		  case INT96:
+			  return new BinaryStatistics();
+		  case FIXED_LEN_BYTE_ARRAY:
+			  return new BinaryStatistics();
+		  default:
+			  throw new UnknownColumnTypeException(type);
+		  }
+	  } else {
+		  switch(type) {
+		  case INT32:
+			  return new IntStatistics();
+		  case INT64:
+			  return new LongStatistics();
+		  case FLOAT:
+			  return new FloatStatistics();
+		  case DOUBLE:
+			  return new DoubleStatistics();
+		  case BOOLEAN:
+			  return new BooleanStatistics();
+		  case BINARY:
+			  return new BinaryStatistics();
+		  case INT96:
+			  return new BinaryStatistics();
+		  case FIXED_LEN_BYTE_ARRAY:
+			  return new BinaryStatistics();
+		  default:
+			  throw new UnknownColumnTypeException(type);
+		  }
+	  }
   }
 
   /**
