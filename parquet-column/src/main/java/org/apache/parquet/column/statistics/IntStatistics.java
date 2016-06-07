@@ -18,6 +18,8 @@
  */
 package org.apache.parquet.column.statistics;
 
+import java.util.Hashtable;
+
 import org.apache.parquet.bytes.BytesUtils;
 
 public class IntStatistics extends Statistics<Integer> {
@@ -25,17 +27,35 @@ public class IntStatistics extends Statistics<Integer> {
   private int max;
   private int min;
 
+  // line: y = kx + b
+  private double threshold;
+  private double k;
+  private double b;
+  private long num_values;
+  private double sumX = 0.0;
+  private double sumY = 0.0;
+  private double sumx2 = 0.0;
+  
+  // distinct value: hashtable value -> appear times
+  private Hashtable<Integer, Integer> valueDic = new Hashtable<Integer, Integer>();
+
   @Override
   public void updateStats(int value) {
     if (!this.hasNonNullValue()) {
       initializeStats(value, value);
     } else {
       updateStats(value, value);
+      if(Statistics.statVersion == StatisticVersion.MODIFID_STAT) {
+    	  //Create by Lang Yu, 11:20 PM, Jun 6, 2016
+    	  updateAddStats(value);
+      }
     }
   }
 
   @Override
   public void mergeStatisticsMinMax(Statistics stats) {
+	  // TODO bugs here? (Comment by Lang Yu, 11:33 PM, Jun 6, 2016)
+	  System.out.println("Unsupport merge function is called!!!");
     IntStatistics intStats = (IntStatistics)stats;
     if (!this.hasNonNullValue()) {
       initializeStats(intStats.getMin(), intStats.getMax());
@@ -80,6 +100,8 @@ public class IntStatistics extends Statistics<Integer> {
       min = min_value;
       max = max_value;
       this.markAsNotEmpty();
+      
+      num_values = 1;
   }
 
   @Override
@@ -104,5 +126,31 @@ public class IntStatistics extends Statistics<Integer> {
     this.max = max;
     this.min = min;
     this.markAsNotEmpty();
+  }
+  
+  //Create by Lang Yu, 11:29 PM, Jun 6, 2016
+  public void updateAddStats(int value) {
+	  
+	  // update distinct value dict
+	  if (valueDic.containsKey(value)) {
+		  valueDic.put(value, valueDic.get(value) + 1);
+	  } else {
+		  valueDic.put(value, 1);
+	  }
+	  
+	  // update linear function
+	  num_values++;
+  }
+  
+  public void getGradient() {
+	  
+  }
+  
+  public double getError() {
+	  
+  }
+  
+  public int getDistinctNum() {
+	  return valueDic.size();
   }
 }
