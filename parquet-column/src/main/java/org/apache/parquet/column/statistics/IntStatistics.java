@@ -102,6 +102,8 @@ public class IntStatistics extends Statistics<Integer> {
       this.markAsNotEmpty();
       
       num_values = 1;
+      sumX += num_values;
+      sumx2 += num_values * num_values;
   }
 
   @Override
@@ -140,6 +142,7 @@ public class IntStatistics extends Statistics<Integer> {
 	  
 	  // update linear function
 	  num_values++;
+	  
   }
   
   public void getGradient() {
