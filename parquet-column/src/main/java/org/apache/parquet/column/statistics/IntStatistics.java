@@ -27,14 +27,7 @@ public class IntStatistics extends Statistics<Integer> {
   private int max;
   private int min;
 
-  // line: y = kx + b
-  private double threshold;
-  private double k;
-  private double b;
-  private long num_values;
-  private double sumX = 0.0;
-  private double sumY = 0.0;
-  private double sumx2 = 0.0;
+  
   
   // distinct value: hashtable value -> appear times
   private Hashtable<Integer, Integer> valueDic = new Hashtable<Integer, Integer>();
@@ -56,12 +49,12 @@ public class IntStatistics extends Statistics<Integer> {
   public void mergeStatisticsMinMax(Statistics stats) {
 	  // TODO bugs here? (Comment by Lang Yu, 11:33 PM, Jun 6, 2016)
 	  System.out.println("Unsupport merge function is called!!!");
-    IntStatistics intStats = (IntStatistics)stats;
-    if (!this.hasNonNullValue()) {
-      initializeStats(intStats.getMin(), intStats.getMax());
-    } else {
-      updateStats(intStats.getMin(), intStats.getMax());
-    }
+	  IntStatistics intStats = (IntStatistics)stats;
+	  if (!this.hasNonNullValue()) {
+		  initializeStats(intStats.getMin(), intStats.getMax());
+	  } else {
+		  updateStats(intStats.getMin(), intStats.getMax());
+	  }
   }
 
   @Override
@@ -101,9 +94,6 @@ public class IntStatistics extends Statistics<Integer> {
       max = max_value;
       this.markAsNotEmpty();
       
-      num_values = 1;
-      sumX += num_values;
-      sumx2 += num_values * num_values;
   }
 
   @Override
@@ -145,15 +135,5 @@ public class IntStatistics extends Statistics<Integer> {
 	  
   }
   
-  public void getGradient() {
-	  
-  }
   
-  public double getError() {
-	  
-  }
-  
-  public int getDistinctNum() {
-	  return valueDic.size();
-  }
 }
