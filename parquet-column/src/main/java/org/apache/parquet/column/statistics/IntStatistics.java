@@ -120,20 +120,6 @@ public class IntStatistics extends Statistics<Integer> {
     this.markAsNotEmpty();
   }
   
-  //Create by Lang Yu, 11:29 PM, Jun 6, 2016
-  public void updateAddStats(int value) {
-	  
-	  // update distinct value dict
-	  if (valueDic.containsKey(value)) {
-		  valueDic.put(value, valueDic.get(value) + 1);
-	  } else {
-		  valueDic.put(value, 1);
-	  }
-	  
-	  // update linear function
-	  num_values++;
-	  
-  }
   
   
 }
