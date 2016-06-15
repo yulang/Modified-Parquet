@@ -4,7 +4,6 @@ import java.util.Hashtable;
 
 import org.apache.parquet.ParquetRuntimeException;
 import org.apache.parquet.io.api.Binary;
-import org.h2.value.Value;
 import java.lang.Math;
 
 public class DistributionStatistics <T extends Comparable<T>> {

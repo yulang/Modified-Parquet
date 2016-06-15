@@ -22,7 +22,6 @@ import org.apache.parquet.column.UnknownColumnTypeException;
 import org.apache.parquet.column.ParquetProperties.WriterVersion;
 import org.apache.parquet.io.api.Binary;
 import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName;
-import org.easymock.internal.matchers.Null;
 
 import java.util.Arrays;
 
