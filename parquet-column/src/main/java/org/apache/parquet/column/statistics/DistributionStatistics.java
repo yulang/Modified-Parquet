@@ -1,3 +1,4 @@
+// Created by Lang Yu. Github:@yulang
 package org.apache.parquet.column.statistics;
 
 import java.util.Hashtable;
@@ -7,6 +8,7 @@ import org.apache.parquet.io.api.Binary;
 import java.lang.Math;
 
 public class DistributionStatistics <T extends Comparable<T>> {
+	private static final boolean VERBOSE = true;
 	// Dictionary to track distinct values
 	
 	private Hashtable<T, Integer> valueDic; // bugs here?
@@ -63,7 +65,7 @@ public class DistributionStatistics <T extends Comparable<T>> {
 		switch (type) {
 		case NUM:
 			num_values ++;
-			regress((Double) value);
+			regress(value);
 			if (valueDic.containsKey(value)) {
 				valueDic.put(value, valueDic.get(value) + 1);
 			} else {
@@ -80,6 +82,12 @@ public class DistributionStatistics <T extends Comparable<T>> {
 			break;
 		default:
 			throw new UnsupportedOperationException("Unsupport type" + value.getClass().getName());
+		}
+		if (VERBOSE) {
+			String tmp1 = Integer.toString(getDistinctNum());
+			System.out.println("Number of unique value: " + tmp1);
+			String tmp2 = Double.toString(getSlope());
+			System.out.println("Slope is: " + tmp2);
 		}
 	}
 	
@@ -142,8 +150,19 @@ public class DistributionStatistics <T extends Comparable<T>> {
 		threshold = newThresh;
 	}
 	
-	public void regress(double value) {
+	public void regress(T newValue) {
+		// Ungly code here.... need to find a better implementation
+		double value = 0.0;
 		// Calculate linear regression
+		if (newValue instanceof Integer) {
+			value = (double)((Integer)newValue).intValue();
+		} else if (newValue instanceof Long) {
+			value = ((Long)newValue).doubleValue();
+		} else if (newValue instanceof Float) {
+			value = (double)((Float)newValue).doubleValue();
+		} else {
+			value = (Double)newValue;
+		}
 		double dx = num_values - meanX;
 		double dy = value - meanY;
 		varX += (((num_values-1)/(double)num_values)*dx*dx - varX)/(double)num_values;

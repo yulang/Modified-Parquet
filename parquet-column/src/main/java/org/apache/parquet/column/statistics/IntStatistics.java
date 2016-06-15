@@ -88,6 +88,7 @@ public class IntStatistics extends Statistics<Integer> {
   }
 
   public void initializeStats(int min_value, int max_value) {
+      System.out.println("Hello");
       min = min_value;
       max = max_value;
       this.markAsNotEmpty();
