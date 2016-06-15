@@ -27,10 +27,8 @@ public class IntStatistics extends Statistics<Integer> {
   private int max;
   private int min;
 
+  private DistributionStatistics<Integer> distStat;
   
-  
-  // distinct value: hashtable value -> appear times
-  private Hashtable<Integer, Integer> valueDic = new Hashtable<Integer, Integer>();
 
   @Override
   public void updateStats(int value) {
@@ -38,9 +36,9 @@ public class IntStatistics extends Statistics<Integer> {
       initializeStats(value, value);
     } else {
       updateStats(value, value);
-      if(Statistics.statVersion == StatisticVersion.MODIFID_STAT) {
+      if(Statistics.statVersion == StatisticVersion.MODIFIED_STAT) {
     	  //Create by Lang Yu, 11:20 PM, Jun 6, 2016
-    	  updateAddStats(value);
+    	  distStat.updateStat(value);
       }
     }
   }
@@ -93,7 +91,9 @@ public class IntStatistics extends Statistics<Integer> {
       min = min_value;
       max = max_value;
       this.markAsNotEmpty();
-      
+      distStat = new DistributionStatistics<Integer>();
+      assert min_value == max_value;
+      distStat.initializeStats(min_value);
   }
 
   @Override

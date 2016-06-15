@@ -5,7 +5,7 @@ import java.util.Hashtable;
 import org.apache.parquet.ParquetRuntimeException;
 import org.apache.parquet.io.api.Binary;
 import org.h2.value.Value;
-
+import java.lang.Math;
 
 public class DistributionStatistics <T extends Comparable<T>> {
 	// Dictionary to track distinct values
@@ -13,14 +13,20 @@ public class DistributionStatistics <T extends Comparable<T>> {
 	private Hashtable<T, Integer> valueDic; // bugs here?
 
 	// line: y = kx + b
-	private double threshold = 0.0;
+	private double threshold = 0.0; // threshold of regression error
 	private long num_values = 0; // is also x in the linear regression
 	
 	private double meanX = 0.0;
 	private double meanY = 0.0;
+	private double sumXY = 0.0;
+	private double sumX2 = 0.0;
+	private double sumY2 = 0.0;
+	
+	
 	private double varX = 0.0;
 	private double covXY = 0.0;
-
+	private double corr = 0.0; // correlation
+	
 	public enum StatType {
 		NUM, BOOL, BIN, UNDEF;
 	};
@@ -43,14 +49,18 @@ public class DistributionStatistics <T extends Comparable<T>> {
 			type = StatType.BOOL;
 			valueDic = new Hashtable<T, Integer>();
 		} else {
-			throw new ParquetRuntimeException("Unsupported type" + value.getClass().getName()) {
-			};
+			throw new UnsupportedOperationException("Unsupport type");
 		}
 
 	}
 	
+	public void initializeStates(T value, double initThresh) {
+		initializeStats(value);
+		threshold = initThresh;
+	}
 	
-	public void updateStat(T value) throws Exception {
+	
+	public void updateStat(T value) {
 		switch (type) {
 		case NUM:
 			num_values ++;
@@ -70,7 +80,7 @@ public class DistributionStatistics <T extends Comparable<T>> {
 			}
 			break;
 		default:
-			throw new Exception("Unsupport type" + value.getClass().getName());
+			throw new UnsupportedOperationException("Unsupport type" + value.getClass().getName());
 		}
 	}
 	
@@ -80,7 +90,7 @@ public class DistributionStatistics <T extends Comparable<T>> {
 		return covXY / varX;
 	}
 	
-	public double getOffset() {
+	public double getIntercept() {
 		assert type == StatType.NUM;
 		return meanY - ((covXY / varX) * meanX);
 	}
@@ -94,14 +104,31 @@ public class DistributionStatistics <T extends Comparable<T>> {
 		return valueDic.size();
 	}
 	
+	public double getCorrelation() {
+		// postpone calculating correlation until the value is needed
+		if(num_values == 1)
+			return 0;
+		double xybar = sumXY / num_values;
+		double x2bar = sumX2 / num_values;
+		double y2bar = sumY2 / num_values;
+		
+		corr = (xybar - meanX * meanY) / Math.sqrt((x2bar - meanX * meanX) * (y2bar - meanY * meanY));
+		return corr;
+	}
+	
 	public void resetStats() {
 		// used to reset stats when data distribution alter from current models
 		if (type == StatType.NUM) {
 			num_values = 0;
 			meanX = 0.0;
 			meanY = 0.0;
+			sumX2 = 0.0;
+			sumY2 = 0.0;
+			sumXY = 0.0;
+			
 			varX = 0.0;
 			covXY = 0.0;
+			corr = 0.0;
 			threshold = 0.0;
 		}
 		
@@ -120,9 +147,13 @@ public class DistributionStatistics <T extends Comparable<T>> {
 		// Calculate linear regression
 		double dx = num_values - meanX;
 		double dy = value - meanY;
-		varX += (((num_values-1)/num_values)*dx*dx - varX)/num_values;
-		covXY += (((num_values-1)/num_values)*dx*dy - varX)/num_values;
+		varX += (((num_values-1)/(double)num_values)*dx*dx - varX)/(double)num_values;
+		covXY += (((num_values-1)/(double)num_values)*dx*dy - varX)/(double)num_values;
 		meanX += dx / num_values;
 		meanY += dy / num_values;
+		
+		sumX2 += num_values * num_values;
+		sumY2 += value * value;
+		sumXY += num_values * value;
 	}
 }

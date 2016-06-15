@@ -38,11 +38,11 @@ public abstract class Statistics<T extends Comparable<T>> {
   private long num_nulls;
 
   // Modify by Lang Yu, 3:41 PM, Jun 6, 2016
-  public static final StatisticVersion statVersion = StatisticVersion.MODIFID_STAT;
+  public static final StatisticVersion statVersion = StatisticVersion.MODIFIED_STAT;
   
   public enum StatisticVersion {
 	    ORIGINAL_STAT ("v1"),
-	    MODIFID_STAT ("v2");
+	    MODIFIED_STAT ("v2");
 
 	    private final String shortName;
 
