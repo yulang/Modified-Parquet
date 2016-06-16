@@ -35,21 +35,28 @@ public class DistributionStatistics <T extends Comparable<T>> {
 	
 	public StatType type = StatType.UNDEF;
 	
+	public DistributionStatistics() {
+		valueDic = new Hashtable<T, Integer>();
+	}
+	
 	public void initializeStats(T value) {
 		if(value instanceof Integer || value instanceof Double || value instanceof Float || value instanceof Long) {
 			// for number value, need to keep track of linear distribution
 			type = StatType.NUM;
 			// keep distinct value dic
-			valueDic = new Hashtable<T, Integer>();
+			//valueDic = new Hashtable<T, Integer>();
 			//valueDic.put(value, 1);
 			updateStat(value);
 		} else if (value instanceof Binary) {
 			type = StatType.BIN;
-			valueDic = new Hashtable<T, Integer>();
-			valueDic.put(value, 1);
+			//valueDic = new Hashtable<T, Integer>();
+			//valueDic.put(value, 1);
+			updateStat(value);
 		} else if (value instanceof Boolean) {
 			type = StatType.BOOL;
-			valueDic = new Hashtable<T, Integer>();
+			//valueDic = new Hashtable<T, Integer>();
+			//valueDic.put(value, 1);
+			updateStat(value);
 		} else {
 			throw new UnsupportedOperationException("Unsupport type");
 		}
