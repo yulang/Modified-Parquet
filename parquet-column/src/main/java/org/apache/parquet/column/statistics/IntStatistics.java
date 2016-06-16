@@ -29,11 +29,18 @@ public class IntStatistics extends Statistics<Integer> {
 
   private DistributionStatistics<Integer> distStat;
   
-
+  
+  public DistributionStatistics<Integer> getDistStat() {
+	  return distStat;
+  }
   @Override
   public void updateStats(int value) {
     if (!this.hasNonNullValue()) {
       initializeStats(value, value);
+      if (Statistics.statVersion == StatisticVersion.MODIFIED_STAT) {
+    	  distStat = new DistributionStatistics<Integer>();
+          distStat.initializeStats(value);
+      }
     } else {
       updateStats(value, value);
       if(Statistics.statVersion == StatisticVersion.MODIFIED_STAT) {
@@ -45,14 +52,13 @@ public class IntStatistics extends Statistics<Integer> {
 
   @Override
   public void mergeStatisticsMinMax(Statistics stats) {
-	  // TODO bugs here? (Comment by Lang Yu, 11:33 PM, Jun 6, 2016)
-	  System.out.println("Unsupport merge function is called!!!");
 	  IntStatistics intStats = (IntStatistics)stats;
 	  if (!this.hasNonNullValue()) {
 		  initializeStats(intStats.getMin(), intStats.getMax());
 	  } else {
 		  updateStats(intStats.getMin(), intStats.getMax());
 	  }
+	  distStat.mergeStats(intStats.getDistStat());
   }
 
   @Override
@@ -88,13 +94,9 @@ public class IntStatistics extends Statistics<Integer> {
   }
 
   public void initializeStats(int min_value, int max_value) {
-      System.out.println("Hello");
       min = min_value;
       max = max_value;
       this.markAsNotEmpty();
-      distStat = new DistributionStatistics<Integer>();
-      assert min_value == max_value;
-      distStat.initializeStats(min_value);
   }
 
   @Override

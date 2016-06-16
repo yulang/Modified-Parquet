@@ -8,7 +8,7 @@ import org.apache.parquet.io.api.Binary;
 import java.lang.Math;
 
 public class DistributionStatistics <T extends Comparable<T>> {
-	private static final boolean VERBOSE = true;
+	private static final boolean VERBOSE = true; // flag to turn on debug output
 	// Dictionary to track distinct values
 	
 	private Hashtable<T, Integer> valueDic; // bugs here?
@@ -60,7 +60,50 @@ public class DistributionStatistics <T extends Comparable<T>> {
 		threshold = initThresh;
 	}
 	
-	
+	public Hashtable<T, Integer> getValueDic() {
+		return valueDic;
+	}
+
+	public double getThreshold() {
+		return threshold;
+	}
+
+	public long getNum_values() {
+		return num_values;
+	}
+
+	public double getMeanX() {
+		return meanX;
+	}
+
+	public double getMeanY() {
+		return meanY;
+	}
+
+	public double getSumXY() {
+		return sumXY;
+	}
+
+	public double getSumX2() {
+		return sumX2;
+	}
+
+	public double getSumY2() {
+		return sumY2;
+	}
+
+	public double getVarX() {
+		return varX;
+	}
+
+	public double getCovXY() {
+		return covXY;
+	}
+
+	public double getCorr() {
+		return corr;
+	}
+
 	public void updateStat(T value) {
 		switch (type) {
 		case NUM:
@@ -145,6 +188,24 @@ public class DistributionStatistics <T extends Comparable<T>> {
 		// shouldn't clear state type, since the type of current value should be the same
 	}
 	
+	public void mergeStats(DistributionStatistics stats) {
+		// use old threshold
+		if (this.getClass() == stats.getClass()) {
+			meanX = ((meanX * num_values) + (stats.getMeanX())) / (num_values + stats.getNum_values());
+			meanY = ((meanY * num_values) + (stats.getMeanY())) / (num_values + stats.getNum_values());
+			sumX2 += stats.getSumX2();
+			sumXY += stats.getSumXY();
+			sumY2 += stats.getSumY2();
+			
+			//not sure, BUG here?
+			covXY += stats.getCovXY();
+			varX += stats.getVarX();
+			
+			num_values += stats.getNum_values();
+		} else {
+			throw new StatisticsClassException(this.getClass().toString(), stats.getClass().toString());
+		}
+	}
 	public void resetStats(double newThresh) {
 		resetStats();
 		threshold = newThresh;
