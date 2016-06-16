@@ -1,6 +1,7 @@
 // Created by Lang Yu. Github:@yulang
 package org.apache.parquet.column.statistics;
 
+import java.util.Enumeration;
 import java.util.Hashtable;
 
 import org.apache.parquet.ParquetRuntimeException;
@@ -55,7 +56,7 @@ public class DistributionStatistics <T extends Comparable<T>> {
 
 	}
 	
-	public void initializeStates(T value, double initThresh) {
+	public void initializeStats(T value, double initThresh) {
 		initializeStats(value);
 		threshold = initThresh;
 	}
@@ -191,17 +192,31 @@ public class DistributionStatistics <T extends Comparable<T>> {
 	public void mergeStats(DistributionStatistics stats) {
 		// use old threshold
 		if (this.getClass() == stats.getClass()) {
-			meanX = ((meanX * num_values) + (stats.getMeanX())) / (num_values + stats.getNum_values());
-			meanY = ((meanY * num_values) + (stats.getMeanY())) / (num_values + stats.getNum_values());
-			sumX2 += stats.getSumX2();
-			sumXY += stats.getSumXY();
-			sumY2 += stats.getSumY2();
-			
-			//not sure, BUG here?
-			covXY += stats.getCovXY();
-			varX += stats.getVarX();
-			
-			num_values += stats.getNum_values();
+			if (type == StatType.NUM) {
+				// update regression data
+				meanX = ((meanX * num_values) + (stats.getMeanX())) / (num_values + stats.getNum_values());
+				meanY = ((meanY * num_values) + (stats.getMeanY())) / (num_values + stats.getNum_values());
+				sumX2 += stats.getSumX2();
+				sumXY += stats.getSumXY();
+				sumY2 += stats.getSumY2();
+
+				//not sure, BUG here?
+				covXY += stats.getCovXY();
+				varX += stats.getVarX();
+
+				num_values += stats.getNum_values();
+			}
+			// update distinct value dic
+			Enumeration<T> keys = stats.getValueDic().keys();
+			Hashtable<T, Integer> hashtable =stats.getValueDic();
+			while (keys.hasMoreElements()) {
+				T key = keys.nextElement();
+				if (valueDic.containsKey(key)) {
+					valueDic.put(key, valueDic.get(key) + hashtable.get(key));
+				} else {
+					valueDic.put(key, hashtable.get(key));
+				}
+			}
 		} else {
 			throw new StatisticsClassException(this.getClass().toString(), stats.getClass().toString());
 		}

@@ -19,18 +19,33 @@
 package org.apache.parquet.column.statistics;
 
 import org.apache.parquet.bytes.BytesUtils;
+import org.apache.parquet.column.statistics.Statistics.StatisticVersion;
 
 public class BooleanStatistics extends Statistics<Boolean> {
 
   private boolean max;
   private boolean min;
 
+  private DistributionStatistics<Boolean> distStat;
+
+
+  public DistributionStatistics<Boolean> getDistStat() {
+	  return distStat;
+  }
   @Override
   public void updateStats(boolean value) {
     if (!this.hasNonNullValue()) {
       initializeStats(value, value);
+      if (Statistics.statVersion == StatisticVersion.MODIFIED_STAT) {
+    	  distStat = new DistributionStatistics<Boolean>();
+          distStat.initializeStats(value);
+      }
     } else {
       updateStats(value, value);
+      if(Statistics.statVersion == StatisticVersion.MODIFIED_STAT) {
+    	  //Create by Lang Yu, 11:20 PM, Jun 6, 2016
+    	  distStat.updateStat(value);
+      }
     }
   }
 
@@ -39,8 +54,14 @@ public class BooleanStatistics extends Statistics<Boolean> {
     BooleanStatistics boolStats = (BooleanStatistics)stats;
     if (!this.hasNonNullValue()) {
       initializeStats(boolStats.getMin(), boolStats.getMax());
+      if (Statistics.statVersion == StatisticVersion.MODIFIED_STAT) {
+    	  distStat = new DistributionStatistics<Boolean>();
+      }
     } else {
       updateStats(boolStats.getMin(), boolStats.getMax());
+    }
+    if (Statistics.statVersion == StatisticVersion.MODIFIED_STAT) {
+    	distStat.mergeStats(boolStats.getDistStat());
     }
   }
 

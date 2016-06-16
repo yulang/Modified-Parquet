@@ -18,6 +18,7 @@
  */
 package org.apache.parquet.column.statistics;
 
+import org.apache.parquet.column.statistics.Statistics.StatisticVersion;
 import org.apache.parquet.io.api.Binary;
 
 public class BinaryStatistics extends Statistics<Binary> {
@@ -25,12 +26,26 @@ public class BinaryStatistics extends Statistics<Binary> {
   private Binary max;
   private Binary min;
 
+  private DistributionStatistics<Binary> distStat;
+
+
+  public DistributionStatistics<Binary> getDistStat() {
+	  return distStat;
+  }
   @Override
   public void updateStats(Binary value) {
     if (!this.hasNonNullValue()) {
       initializeStats(value, value);
+      if (Statistics.statVersion == StatisticVersion.MODIFIED_STAT) {
+    	  distStat = new DistributionStatistics<Binary>();
+          distStat.initializeStats(value);
+      }
     } else {
       updateStats(value, value);
+      if(Statistics.statVersion == StatisticVersion.MODIFIED_STAT) {
+    	  //Create by Lang Yu, 11:20 PM, Jun 6, 2016
+    	  distStat.updateStat(value);
+      }
     }
   }
 
@@ -39,8 +54,14 @@ public class BinaryStatistics extends Statistics<Binary> {
     BinaryStatistics binaryStats = (BinaryStatistics)stats;
     if (!this.hasNonNullValue()) {
       initializeStats(binaryStats.getMin(), binaryStats.getMax());
+      if (Statistics.statVersion == StatisticVersion.MODIFIED_STAT) {
+    	  distStat = new DistributionStatistics<Binary>();
+      }
     } else {
       updateStats(binaryStats.getMin(), binaryStats.getMax());
+    }
+    if (Statistics.statVersion == StatisticVersion.MODIFIED_STAT) {
+    	distStat.mergeStats(binaryStats.getDistStat());
     }
   }
 

@@ -52,7 +52,7 @@ public class IntStatistics extends Statistics<Integer> {
 
   @Override
   public void mergeStatisticsMinMax(Statistics stats) {
-	  IntStatistics intStats = (IntStatistics)stats;
+	IntStatistics intStats = (IntStatistics)stats;
     if (!this.hasNonNullValue()) {
       initializeStats(intStats.getMin(), intStats.getMax());
       if (Statistics.statVersion == StatisticVersion.MODIFIED_STAT) {

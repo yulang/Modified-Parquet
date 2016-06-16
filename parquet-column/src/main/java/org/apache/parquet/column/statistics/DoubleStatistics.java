@@ -19,18 +19,33 @@
 package org.apache.parquet.column.statistics;
 
 import org.apache.parquet.bytes.BytesUtils;
+import org.apache.parquet.column.statistics.Statistics.StatisticVersion;
 
 public class DoubleStatistics extends Statistics<Double> {
 
   private double max;
   private double min;
 
+  private DistributionStatistics<Double> distStat;
+
+
+  public DistributionStatistics<Double> getDistStat() {
+	  return distStat;
+  }
   @Override
   public void updateStats(double value) {
     if (!this.hasNonNullValue()) {
       initializeStats(value, value);
+      if (Statistics.statVersion == StatisticVersion.MODIFIED_STAT) {
+    	  distStat = new DistributionStatistics<Double>();
+    	  distStat.initializeStats(value);
+      }
     } else {
       updateStats(value, value);
+      if(Statistics.statVersion == StatisticVersion.MODIFIED_STAT) {
+    	  //Create by Lang Yu, 11:20 PM, Jun 6, 2016
+    	  distStat.updateStat(value);
+      }
     }
   }
 
@@ -39,8 +54,14 @@ public class DoubleStatistics extends Statistics<Double> {
     DoubleStatistics doubleStats = (DoubleStatistics)stats;
     if (!this.hasNonNullValue()) {
       initializeStats(doubleStats.getMin(), doubleStats.getMax());
+      if (Statistics.statVersion == StatisticVersion.MODIFIED_STAT) {
+    	  distStat = new DistributionStatistics<Double>();
+      }
     } else {
       updateStats(doubleStats.getMin(), doubleStats.getMax());
+    }
+    if (Statistics.statVersion == StatisticVersion.MODIFIED_STAT) {
+    	distStat.mergeStats(doubleStats.getDistStat());
     }
   }
 
