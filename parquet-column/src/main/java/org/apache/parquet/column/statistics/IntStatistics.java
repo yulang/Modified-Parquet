@@ -53,12 +53,17 @@ public class IntStatistics extends Statistics<Integer> {
   @Override
   public void mergeStatisticsMinMax(Statistics stats) {
 	  IntStatistics intStats = (IntStatistics)stats;
-	  if (!this.hasNonNullValue()) {
-		  initializeStats(intStats.getMin(), intStats.getMax());
-	  } else {
-		  updateStats(intStats.getMin(), intStats.getMax());
-	  }
-	  distStat.mergeStats(intStats.getDistStat());
+    if (!this.hasNonNullValue()) {
+      initializeStats(intStats.getMin(), intStats.getMax());
+      if (Statistics.statVersion == StatisticVersion.MODIFIED_STAT) {
+        distStat = new DistributionStatistics<Integer>();
+      }
+    } else {
+      updateStats(intStats.getMin(), intStats.getMax());
+    }
+    if (Statistics.statVersion == StatisticVersion.MODIFIED_STAT) {
+      distStat.mergeStats(intStats.getDistStat());
+    }
   }
 
   @Override
