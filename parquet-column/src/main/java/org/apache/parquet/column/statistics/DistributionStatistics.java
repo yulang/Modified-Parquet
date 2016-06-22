@@ -9,7 +9,7 @@ import org.apache.parquet.io.api.Binary;
 import java.lang.Math;
 
 public class DistributionStatistics <T extends Comparable<T>> {
-	private static final boolean VERBOSE = true; // flag to turn on debug output
+	private static final boolean VERBOSE = false; // flag to turn on debug output
 	// Dictionary to track distinct values
 	
 	private Hashtable<T, Integer> valueDic; // bugs here?

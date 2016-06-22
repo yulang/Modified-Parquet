@@ -59,12 +59,14 @@ final class ColumnWriterV2 implements ColumnWriter {
   private Statistics<?> statistics;
   private long rowsWrittenSoFar = 0;
 
+  private ParquetProperties props; // Modify by Lang Yu, 2:58 PM, Jun 16, 2016
   public ColumnWriterV2(
       ColumnDescriptor path,
       PageWriter pageWriter,
       ParquetProperties props) {
     this.path = path;
     this.pageWriter = pageWriter;
+    this.props = props; // Modify by Lang Yu, 2:58 PM, Jun 16, 2016
     resetStatistics();
 
     this.repetitionLevelColumn = props.newRepetitionLevelEncoder(path);
@@ -311,6 +313,7 @@ final class ColumnWriterV2 implements ColumnWriter {
     repetitionLevelColumn.reset();
     definitionLevelColumn.reset();
     dataColumn.reset();
+    this.dataColumn = props.newValuesWriter(path);
     valueCount = 0;
     resetStatistics();
   }
