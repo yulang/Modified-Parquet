@@ -3,9 +3,12 @@ package org.apache.parquet.column.statistics;
 
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.LinkedList;
+import java.util.Queue;
 
 import org.apache.parquet.ParquetRuntimeException;
 import org.apache.parquet.io.api.Binary;
+
 import java.lang.Math;
 
 public class DistributionStatistics <T extends Comparable<T>> {
@@ -29,6 +32,13 @@ public class DistributionStatistics <T extends Comparable<T>> {
 	private double covXY = 0.0;
 	private double corr = 0.0; // correlation
 	
+	// use for computing delta window
+	private Queue<Double> window;
+	private int win_cap;
+	private double prev_sum;
+	private double win_sum;
+	private double prev_avg = 0.0;
+	
 	public enum StatType {
 		NUM, BOOL, BIN, UNDEF;
 	};
@@ -37,6 +47,8 @@ public class DistributionStatistics <T extends Comparable<T>> {
 	
 	public DistributionStatistics() {
 		valueDic = new Hashtable<T, Integer>();
+		window = new LinkedList<Double>();
+		win_cap = 5;
 	}
 	
 	public void initializeStats(T value) {
@@ -68,6 +80,18 @@ public class DistributionStatistics <T extends Comparable<T>> {
 		threshold = initThresh;
 	}
 	
+	public double getWindowAvg() {
+		int size = window.size();
+		double avg = win_sum / size;
+		return avg;
+	}
+	
+	public double calcDelta() {
+		double avg = getWindowAvg();
+		double delta = avg - prev_avg;
+		prev_avg = avg;
+		return delta;
+	}
 	public Hashtable<T, Integer> getValueDic() {
 		return valueDic;
 	}
@@ -122,6 +146,18 @@ public class DistributionStatistics <T extends Comparable<T>> {
 			} else {
 				valueDic.put(value, 1);
 			}
+			
+			double v = parseNum(value);
+			if (window.size() == win_cap) {
+				double newSum = win_sum;
+				newSum = newSum - window.remove() + v;
+				window.add(v);
+				prev_sum = win_sum;
+				win_sum = newSum;
+			} else {
+				
+			}
+			calcDelta();
 			break;
 		case BOOL:
 		case BIN:
@@ -233,10 +269,9 @@ public class DistributionStatistics <T extends Comparable<T>> {
 		threshold = newThresh;
 	}
 	
-	public void regress(T newValue) {
-		// Ungly code here.... need to find a better implementation
-		double value = 0.0;
-		// Calculate linear regression
+	public double parseNum(T newValue) {
+		assert type == StatType.NUM;
+		double value;
 		if (newValue instanceof Integer) {
 			value = (double)((Integer)newValue).intValue();
 		} else if (newValue instanceof Long) {
@@ -246,6 +281,11 @@ public class DistributionStatistics <T extends Comparable<T>> {
 		} else {
 			value = (Double)newValue;
 		}
+		return value;
+	}
+	public void regress(T newValue) {
+		// Ungly code here.... need to find a better implementation
+		double value = parseNum(newValue);
 		double dx = num_values - meanX;
 		double dy = value - meanY;
 		varX += (((num_values-1)/(double)num_values)*dx*dx - varX)/(double)num_values;
